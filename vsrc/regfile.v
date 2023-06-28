@@ -15,7 +15,7 @@ module REGFILE # (parameter WIDTH = 32, REGBITS = 3) (
             for (integer i = 0; i < (1<<REGBITS); i = i + 1) begin
                 regs[i] <= 0;
             end
-        end else if (regwrite_i) regs[wa_i] <= wd_i;
+        end else if (regwrite_i && wa_i) regs[wa_i] <= wd_i;
     end
     
     assign rd1_o = ra1_i ? regs[ra1_i] : `CONST_ZERO;

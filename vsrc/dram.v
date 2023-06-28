@@ -13,7 +13,7 @@ module DRAM(
         .clka(clk),    // input wire clka
         .ena(1'b1),      // input wire ena
         .wea(wea_i),      // input wire [0 : 0] wea
-        .addra(addra_i),  // input wire [11 : 0] addra
+        .addra({2'b00, addra_i[11:2]}),  // input wire [11 : 0] addra
         .dina(dina_i),    // input wire [31 : 0] dina
         .douta(douta_o)  // output wire [31 : 0] douta
     );

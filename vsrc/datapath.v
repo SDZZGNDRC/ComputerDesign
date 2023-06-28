@@ -52,7 +52,7 @@ module DATAPATH(
     );
 
     FLOPENR #(`WIDTH) pc_reg(clk, pcen_i, rst, nextpc, pc);
-    FLOP # (`WIDTH) mdr(clk, memrdata_i, md);
+    // FLOP # (`WIDTH) mdr(clk, memrdata_i, md);
     FLOP # (`WIDTH) areg(clk, rd1, a);
     FLOP # (`WIDTH) wrd(clk, rd2, memwdata_o);
     FLOP # (`WIDTH) res(clk, aluresult, aluout);
@@ -74,7 +74,7 @@ module DATAPATH(
 
     MUX4 # (`WIDTH) pcmux(aluresult, aluout, constx4, `CONST_ZERO,
         pcsource_i, nextpc);
-    MUX2 # (`WIDTH) wdmux(aluout, md, memtoreg_i, wd);
+    MUX2 # (`WIDTH) wdmux(aluout, memrdata_i, memtoreg_i, wd);
     REGFILE #(`WIDTH, `REG_WIDTH) rf(clk, rst, regwrite_i, ra1, ra2, wa, wd, rd1, rd2);
     ALU #(`WIDTH) alu(src1, src2, alucont_i, aluresult);
     ZERODETECT #(`WIDTH) zd(aluresult, zero_o);
