@@ -16,14 +16,23 @@ module MEMORY(
     wire memwrite_t;
 
     reg [`ADDR_WIDTH-1:0] memaddr_t;
+    reg memwrite_t_r;
+
+    always @(posedge clk) begin
+        memwrite_t_r <= memwrite_t;
+    end
 
     always @(posedge clk) begin
         if (rst) begin
             memaddr_t <= `ADDR_WIDTH'd0;
         end else begin
             memaddr_t <= memaddr_i;
+
         end
     end
+
+    wire [`ADDR_WIDTH-1:0] iram_addr_t;
+    assign iram_addr_t = (memwrite_t) ? memaddr_t : memaddr_i;
 
     // 地址空间的0 ~ 4K-1用于存储指令, 4k ~ 8k-1用于存储数据
 
@@ -31,12 +40,12 @@ module MEMORY(
     assign memwrite_t = (memaddr_i >= `ADDR_WIDTH'd4096) && (memaddr_i < `ADDR_WIDTH'd8192) ? memwrite_i : 1'b0;
 
     // 当地址位于IRAM的地址空间时, 输出IRAM的数据; 否则输出DRAM的数据 (FIXME: 加入外设时需要修改)
-    assign memrdata_o = (memaddr_t < `ADDR_WIDTH'd4096) ? memrdata_irom : memrdata_dram;
+    assign memrdata_o = (memaddr_t < `ADDR_WIDTH'd4096 || memwrite_t_r) ? memrdata_irom : memrdata_dram;
 
     IROM irom(
         .clk(clk),
 
-        .addr_i(memaddr_i),
+        .addr_i(iram_addr_t),
 
         .data_o(memrdata_irom)
     );
