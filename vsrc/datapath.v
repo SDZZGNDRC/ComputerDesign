@@ -11,6 +11,7 @@ module DATAPATH(
     input iord_i,
     input pcen_i,
     input bne_i,
+    input j_i,
     input regwrite_i,
     input regdst_i,
     input [1:0] pcsource_i,
@@ -25,8 +26,9 @@ module DATAPATH(
 );
 
     wire [`REG_WIDTH-1:0] ra1, ra2, wa;
-    wire [`WIDTH-1:0] pc, pc_t, nextpc, md, rd1, rd2, wd, a, src1; 
+    wire [`WIDTH-1:0] pc, pc_t, pc_j, nextpc, md, rd1, rd2, wd, a, src1; 
     wire [`WIDTH-1:0] src2, aluresult, aluout, constx4, signed_ext_immx4;
+    wire beq_bne;
 
     wire [`WIDTH-1:0] signed_ext_imm;
 
@@ -54,7 +56,9 @@ module DATAPATH(
     );
 
     FLOPENR #(`WIDTH) pc_reg(clk, pcen_i, rst, nextpc, pc_t);
-    assign pc = (pcsource_i & ~((zero_o & bne_i) | (~zero_o & ~bne_i))) ? nextpc : pc_t;
+    assign beq_bne = ~((zero_o & bne_i) | (~zero_o & ~bne_i));
+    assign pc = (pcsource_i && (beq_bne | j_i)) ? nextpc : pc_t;
+    assign pc_j = {pc_t[`WIDTH-1:28], inst_o[25:0], 2'b00};
     // FLOP # (`WIDTH) mdr(clk, memrdata_i, md);
     FLOP # (`WIDTH) areg(clk, rd1, a);
     FLOP # (`WIDTH) wrd(clk, rd2, memwdata_o);
@@ -75,7 +79,7 @@ module DATAPATH(
         })
     );
 
-    MUX4 # (`WIDTH) pcmux(aluresult, aluout, constx4, `CONST_ZERO,
+    MUX4 # (`WIDTH) pcmux(aluresult, aluout, pc_j, `CONST_ZERO,
         pcsource_i, nextpc);
     MUX2 # (`WIDTH) wdmux(aluout, memrdata_i, memtoreg_i, wd);
     REGFILE #(`WIDTH, `REG_WIDTH) rf(clk, rst, regwrite_i, ra1, ra2, wa, wd, rd1, rd2);
