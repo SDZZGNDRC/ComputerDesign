@@ -10,6 +10,7 @@ module DATAPATH(
     input memtoreg_i,
     input iord_i,
     input pcen_i,
+    input bne_i,
     input regwrite_i,
     input regdst_i,
     input [1:0] pcsource_i,
@@ -53,7 +54,7 @@ module DATAPATH(
     );
 
     FLOPENR #(`WIDTH) pc_reg(clk, pcen_i, rst, nextpc, pc_t);
-    assign pc = (pcsource_i) ? nextpc : pc_t;
+    assign pc = (pcsource_i & ~((zero_o & bne_i) | (~zero_o & ~bne_i))) ? nextpc : pc_t;
     // FLOP # (`WIDTH) mdr(clk, memrdata_i, md);
     FLOP # (`WIDTH) areg(clk, rd1, a);
     FLOP # (`WIDTH) wrd(clk, rd2, memwdata_o);

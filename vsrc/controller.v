@@ -14,6 +14,7 @@ module CONTROLLER(
     output reg memtoreg_o,
     output reg iord_o,
     output     pcen_o,
+    output reg bne_o,
     output reg regwrite_o,
     output reg regdst_o,
     output reg [1:0] pcsource_o,
@@ -88,6 +89,7 @@ module CONTROLLER(
         pcsource_o <= 2'b00;
         iord_o <= 1'b0;
         memtoreg_o <= 1'b0;
+        bne_o <= 1'b0;
         case (state)
             `CU_STATE_FETCH: begin
                 memread_o <= 1'b1;
@@ -144,6 +146,7 @@ module CONTROLLER(
                 aluop_o <= 2'b01;
                 pcsource_o <= 2'b01;
                 pcwritecond_BNQ <= 1'b1;
+                bne_o <= 1'b1;
             end
         endcase
     end
