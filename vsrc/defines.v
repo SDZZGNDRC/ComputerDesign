@@ -21,6 +21,7 @@
 `define    CU_STATE_BEQEX        4'b1000
 `define    CU_STATE_JEX          4'b1001
 `define    CU_STATE_ADDIEX       4'b1010
+`define    CU_STATE_ADDIWR       4'b1011
 
 // 指令OP字段
 `define    OP_ADDI         6'b001000

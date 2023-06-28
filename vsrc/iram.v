@@ -10,7 +10,7 @@ module IROM(
     blk_mem_gen_0 irom (
         .clka(clk),    // input wire clka
         .ena(1'b1),      // input wire ena
-        .addra(addr_i[11:0]),  // input wire [11 : 0] addra
+        .addra(addr_i[13:2]),  // input wire [11 : 0] addra
         .douta(data_o)  // output wire [31 : 0] douta
     );
 

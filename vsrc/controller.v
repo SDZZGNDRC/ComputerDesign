@@ -64,7 +64,8 @@ module CONTROLLER(
             `CU_STATE_R_TYPE_WR: next_state <= `CU_STATE_FETCH;
             `CU_STATE_BEQEX: next_state <= `CU_STATE_FETCH;
             `CU_STATE_JEX: next_state <= `CU_STATE_FETCH;
-            `CU_STATE_ADDIEX: next_state <= `CU_STATE_R_TYPE_WR;
+            `CU_STATE_ADDIEX: next_state <= `CU_STATE_ADDIWR;
+            `CU_STATE_ADDIWR: next_state <= `CU_STATE_FETCH;
             default: next_state <= `CU_STATE_FETCH;
         endcase
     end
@@ -89,6 +90,7 @@ module CONTROLLER(
                 memread_o <= 1'b1;
                 irwrite_o <= 1'b1;
                 pcwrite <= 1'b1;
+                alusrcb_o <= 3'b001;
             end
             `CU_STATE_DECODE: alusrcb_o <= 3'b011;
             `CU_STATE_MEMADR: begin
@@ -129,6 +131,10 @@ module CONTROLLER(
                 alusrca_o <= 1'b1;
                 alusrcb_o <= 3'b100;  // FIXME: Change
                 aluop_o <= 2'b00;
+            end
+            `CU_STATE_ADDIWR: begin
+                regwrite_o <= 1'b1;
+                regdst_o <= 1'b0;
             end
         endcase
     end

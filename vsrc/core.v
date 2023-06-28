@@ -13,7 +13,8 @@ module CORE(
 );
     wire [`WIDTH-1:0] inst; // 指令
     wire zero, alusrca, memtoreg, iord, pcen, regwrite, regdst;
-    wire [1:0] aluop, pcsource, alusrcb;
+    wire [1:0] aluop, pcsource;
+    wire [2:0] alusrcb;
     wire irwrite;
     wire [2:0] alucont;
 
