@@ -24,13 +24,14 @@ module DATAPATH(
 );
 
     wire [`REG_WIDTH-1:0] ra1, ra2, wa;
-    wire [`WIDTH-1:0] pc, nextpc, md, rd1, rd2, wd, a, src1; 
-    wire [`WIDTH-1:0] src2, aluresult, aluout, constx4;
+    wire [`WIDTH-1:0] pc, pc_t, nextpc, md, rd1, rd2, wd, a, src1; 
+    wire [`WIDTH-1:0] src2, aluresult, aluout, constx4, signed_ext_immx4;
 
     wire [`WIDTH-1:0] signed_ext_imm;
 
     // 立即数有符号扩展
-    assign signed_ext_imm = {inst_o[15], inst_o[15:0]};
+    assign signed_ext_imm = {{16{inst_o[15]}}, inst_o[15:0]};
+    assign signed_ext_immx4 = {{16{inst_o[13]}}, inst_o[13:0], 2'b00};
 
     // 左移两位
     assign constx4 = {inst_o[`WIDTH-3:0], 2'b00};
@@ -51,7 +52,8 @@ module DATAPATH(
         .q(inst_o)
     );
 
-    FLOPENR #(`WIDTH) pc_reg(clk, pcen_i, rst, nextpc, pc);
+    FLOPENR #(`WIDTH) pc_reg(clk, pcen_i, rst, nextpc, pc_t);
+    assign pc = (pcsource_i) ? nextpc : pc_t;
     // FLOP # (`WIDTH) mdr(clk, memrdata_i, md);
     FLOP # (`WIDTH) areg(clk, rd1, a);
     FLOP # (`WIDTH) wrd(clk, rd2, memwdata_o);
@@ -67,7 +69,7 @@ module DATAPATH(
             3'b000, memwdata_o,
             3'b001, `CONST_FOUR,
             3'b010, inst_o[`WIDTH-1:0],
-            3'b011, constx4,
+            3'b011, signed_ext_immx4, // FIXME: Changed before: constx4
             3'b100, signed_ext_imm
         })
     );

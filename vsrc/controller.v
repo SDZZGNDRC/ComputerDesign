@@ -22,7 +22,7 @@ module CONTROLLER(
     output reg irwrite_o
 );
     reg [`CU_STATE_WIDTH-1:0] state, next_state;
-    reg pcwrite, pcwritecond;
+    reg pcwrite, pcwritecond_BEQ, pcwritecond_BNQ;
 
     // 状态切换
     always @(posedge clk) begin
@@ -47,6 +47,7 @@ module CONTROLLER(
                     `OP_R_TYPE: next_state <= `CU_STATE_R_TYPE_EX;
                     `OP_BEQ: next_state <= `CU_STATE_BEQEX;
                     `OP_J: next_state <= `CU_STATE_JEX;
+                    `OP_BNE: next_state <= `CU_STATE_BNEEX;
                     default: next_state <= `CU_STATE_FETCH;
                 endcase
             end
@@ -66,6 +67,7 @@ module CONTROLLER(
             `CU_STATE_JEX: next_state <= `CU_STATE_FETCH;
             `CU_STATE_ADDIEX: next_state <= `CU_STATE_ADDIWR;
             `CU_STATE_ADDIWR: next_state <= `CU_STATE_FETCH;
+            `CU_STATE_BNEEX: next_state <= `CU_STATE_FETCH;
             default: next_state <= `CU_STATE_FETCH;
         endcase
     end
@@ -74,7 +76,8 @@ module CONTROLLER(
     always @(*) begin
         irwrite_o <= 1'b0;
         pcwrite <= 1'b0;
-        pcwritecond <= 1'b0;
+        pcwritecond_BEQ <= 1'b0;
+        pcwritecond_BNQ <= 1'b0;
         regwrite_o <= 1'b0;
         regdst_o <= 1'b0;
         memread_o <= 1'b0;
@@ -121,7 +124,7 @@ module CONTROLLER(
                 alusrca_o <= 1'b1;
                 aluop_o <= 2'b01;
                 pcsource_o <= 2'b01;
-                pcwritecond <= 1'b1;
+                pcwritecond_BEQ <= 1'b1;
             end
             `CU_STATE_JEX: begin
                 pcsource_o <= 2'b10;
@@ -136,8 +139,14 @@ module CONTROLLER(
                 regwrite_o <= 1'b1;
                 regdst_o <= 1'b0;
             end
+            `CU_STATE_BNEEX: begin
+                alusrca_o <= 1'b1;
+                aluop_o <= 2'b01;
+                pcsource_o <= 2'b01;
+                pcwritecond_BNQ <= 1'b1;
+            end
         endcase
     end
 
-    assign pcen_o = pcwrite | (pcwritecond & zero_i); // PC写使能信号
+    assign pcen_o = pcwrite | (pcwritecond_BEQ & zero_i) | (pcwritecond_BNQ & ~zero_i); // PC写使能信号
 endmodule
