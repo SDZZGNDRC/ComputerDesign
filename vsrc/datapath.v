@@ -64,7 +64,7 @@ module DATAPATH(
     FLOP # (`WIDTH) wrd(clk, rd2, memwdata_o);
     FLOP # (`WIDTH) res(clk, aluresult, aluout);
     MUX2 # (`WIDTH) adrmux(pc, aluout, iord_i, memaddr_o);
-    MUX2 # (`WIDTH) src1mux(pc, a, alusrca_i, src1);
+    MUX2 # (`WIDTH) src1mux(pc_t, a, alusrca_i, src1);
 
     MuxKeyWithDefault #(5, 3, `WIDTH) src2mux(
         .out(src2),
