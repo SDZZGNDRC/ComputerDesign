@@ -8,12 +8,33 @@ module MEMORY(
     input [`ADDR_WIDTH-1:0] memaddr_i,
     input [`WIDTH-1:0] memwdata_i,
 
-    output [`WIDTH-1:0] memrdata_o
+    output [`WIDTH-1:0] memrdata_o,
+    output [6:0] seg7_seg_o,
+    output [3:0] seg7_an_o
 );
 
     wire [`WIDTH-1:0] memrdata_irom;
     wire [`WIDTH-1:0] memrdata_dram;
     wire memwrite_t;
+
+    reg [15:0] seg7_num_r;
+    reg [3:0] seg7_an_r;
+
+    always @(posedge clk) begin
+        if (rst) begin
+            seg7_num_r <= 16'd0;
+        end else if (memaddr_i == 32'hfffffff0 && memwrite_i) begin
+            seg7_num_r <= memrdata_o[15:0];
+        end
+    end
+
+    always @(posedge clk) begin
+        if (rst) begin
+            seg7_an_r <= 4'd0;
+        end else if (memaddr_i == 32'hfffffff4 && memwrite_i) begin
+            seg7_an_r <= memrdata_o[3:0];
+        end
+    end
 
     reg [`ADDR_WIDTH-1:0] memaddr_t;
     reg memwrite_t_r;
@@ -27,7 +48,6 @@ module MEMORY(
             memaddr_t <= `ADDR_WIDTH'd0;
         end else begin
             memaddr_t <= memaddr_i;
-
         end
     end
 
@@ -58,5 +78,14 @@ module MEMORY(
         .dina_i(memwdata_i),
 
         .douta_o(memrdata_dram)
+    );
+
+    Seg7 seg7 (
+        .num(seg7_num_r),
+        .clk(clk),
+        .rst(rst),
+        .sel(seg7_an_r),
+        .seg(seg7_seg_o),
+        .an(seg7_an_o)
     );
 endmodule
