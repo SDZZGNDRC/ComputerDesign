@@ -15,7 +15,7 @@ module ALU #(parameter WIDTH = 32) (
             2'b00: result_o <= a_i & b2;
             2'b01: result_o <= a_i | b2;
             2'b10: result_o <= sum;
-            2'b11: result_o <= slt;
+            2'b11: result_o <= alucont_i[2] ? slt : a_i;  // for slt and jr
         endcase
     end
 endmodule

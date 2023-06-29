@@ -257,29 +257,51 @@ def convert_j(inst: str) -> str:
     
     return hex_code
 
+def convert_jr(inst: str) -> str:
+    # Delete the commented portion starting with '#'
+    inst = inst.split('#')[0]
+    params = [i.strip(',') for i in inst.split(' ') if i.strip(',')]
+    if len(params) != 2 or params[0] != 'jr':
+        raise Exception(f'Invalid instruction: {params}')
+    rs = params[1].strip()
+    rs_bin = '{:05b}'.format(int(rs[1:]))
+    # Construct the machine code
+    opcode = '000000'  # jr instruction's opcode
+    
+    machine_code = opcode + rs_bin + '000000000000000' + '001000'
+    # Convert to hexadecimal
+    hex_code = hex(int(machine_code, 2))[2:].zfill(8)
+    
+    return hex_code
+
 def get_ConvertFunc(inst: str) -> Callable[[str], str]:
-        if 'addi' in inst:
+        params = inst.split(' ')
+        params[0] = params[0].strip('\t')
+        params[0] = params[0].strip(',')
+        if 'addi' == params[0]:
             return convert_addi
-        elif 'add' in inst:
+        elif 'add' == params[0]:
             return convert_add
-        elif 'sub' in inst:
+        elif 'sub' == params[0]:
             return convert_sub
-        elif 'or' in inst:
+        elif 'or' == params[0]:
             return convert_or
-        elif 'and' in inst:
+        elif 'and' == params[0]:
             return convert_and
-        elif 'slt' in inst:
+        elif 'slt' == params[0]:
             return convert_slt
-        elif 'beq' in inst:
+        elif 'beq' == params[0]:
             return convert_beq
-        elif 'bne' in inst:
+        elif 'bne' == params[0]:
             return convert_bne
-        elif 'sb' in inst:
+        elif 'sb' == params[0]:
             return convert_sb
-        elif 'lb' in inst:
+        elif 'lb' == params[0]:
             return convert_lb
-        elif 'j' in inst:
+        elif 'j' == params[0]:
             return convert_j
+        elif 'jr' == params[0]:
+            return convert_jr
         else:
             raise Exception(f'Invalid instruction: {inst}')
 

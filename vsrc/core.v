@@ -22,7 +22,8 @@ module CORE(
         .clk(clk),
         .rst(rst),
 
-        .op_i(inst[31:26]), // FIXME: 对照指导书源码, 难道不应该时inst[31:26]吗?
+        .op_i(inst[31:26]),
+        .funct_i(inst[5:0]),
         .zero_i(zero),
 
         .memread_o(memread_o),

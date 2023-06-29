@@ -15,6 +15,7 @@ module ALUCTRL(
                     6'b100100: alucont_o <= 3'b000; // and
                     6'b100101: alucont_o <= 3'b001; // or
                     6'b101010: alucont_o <= 3'b111; // slt
+                    6'b001000: alucont_o <= 3'b011; // jr
                     default: alucont_o <= 3'b101;
                 endcase
         endcase

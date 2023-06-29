@@ -6,6 +6,7 @@ module CONTROLLER(
     input rst,
 
     input wire [5:0] op_i,
+    input wire [5:0] funct_i,
     input zero_i,
     
     output reg memread_o,
@@ -46,7 +47,7 @@ module CONTROLLER(
                     `OP_ADDI: next_state <= `CU_STATE_ADDIEX;
                     `OP_LB: next_state <= `CU_STATE_MEMADR;
                     `OP_SB: next_state <= `CU_STATE_MEMADR;
-                    `OP_R_TYPE: next_state <= `CU_STATE_R_TYPE_EX;
+                    `OP_R_TYPE: next_state <= (funct_i == `FUN_JR) ? `CU_STATE_JREX : `CU_STATE_R_TYPE_EX;
                     `OP_BEQ: next_state <= `CU_STATE_BEQEX;
                     `OP_J: next_state <= `CU_STATE_JEX;
                     `OP_BNE: next_state <= `CU_STATE_BNEEX;
@@ -70,6 +71,7 @@ module CONTROLLER(
             `CU_STATE_ADDIEX: next_state <= `CU_STATE_ADDIWR;
             `CU_STATE_ADDIWR: next_state <= `CU_STATE_FETCH;
             `CU_STATE_BNEEX: next_state <= `CU_STATE_FETCH;
+            `CU_STATE_JREX: next_state <= `CU_STATE_FETCH;
             default: next_state <= `CU_STATE_FETCH;
         endcase
     end
@@ -150,6 +152,13 @@ module CONTROLLER(
                 pcsource_o <= 2'b01;
                 pcwritecond_BNQ <= 1'b1;
                 bne_o <= 1'b1;
+            end
+            `CU_STATE_JREX: begin
+                alusrca_o <= 1'b1;
+                aluop_o <= 2'b10;
+                pcsource_o <= 2'b01;
+                pcwrite <= 1'b1;
+                j_o <= 1'b1;
             end
         endcase
     end
