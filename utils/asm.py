@@ -1,3 +1,7 @@
+'''
+接受asm汇编源文件, 生成对应的vivado coe初始化文件
+'''
+
 from typing import Callable, List, Dict
 import sys
 
@@ -292,6 +296,14 @@ def is_inst(inst: str) -> bool:
     except Exception:
         return False
 
+def is_data_define(line: str) -> bool:
+    '''判断该行是否为变量定义 (待完善)'''
+    params = line.split(' ')
+    if len(params) == 3 and ':' in params[0]:
+        return True
+    else:
+        return False
+
 def int_to_hex(num: int, length: int) -> str:
     # 将整数转换为指定长度的十六进制有符号补码字符串
     hex_str = format(num & (2 ** length - 1), f'0{length}x')
@@ -319,11 +331,15 @@ def replace_label(inst: str, label_table: Dict[str, int], pc_next: int) -> str:
     return new_inst
 
 def scan_table(label_inst: List[str]) -> Dict[str, int]:
+    '''搜索label并建立label表'''
     label_table = {}
     pc = 0
     for line in label_inst:
         if is_label(line):
             label = line.split(':')[0].strip()
+            # 判断该label是否已经存在
+            if label in label_table:
+                raise Exception(f'Duplicate label: {label}')
             label_table[label] = pc
         elif is_inst(line):
             pc += 4
@@ -333,7 +349,26 @@ def asm(asm_content: str) -> List[str]:
     # 删除空行和注释
     asm_inst = [i.strip() for i in asm_content.split('\n') if i.strip()]
     asm_inst = [i.split('#')[0].strip() for i in asm_inst if i.split('#')[0].strip()]
+    
+    # 删除 .data段
+    new_asm_inst = []
+    text_sect_start = False
+    text_sect_end = False
+    for i in asm_inst:
+        if text_sect_end:
+            break
+        if '.text' in i: # .text段开始
+            text_sect_start = True
+        if '.data' in i and text_sect_start: # .text段提前结束
+            text_sect_end = True
+        if text_sect_start:
+            new_asm_inst.append(i)
+    asm_inst = new_asm_inst
+
+    # 进一步过滤        
     asm_inst = [i for i in asm_inst if is_inst(i) or is_label(i)]
+
+    
     print(f'asm_inst={asm_inst}')
     label_table = scan_table(asm_inst)
     machine_code = []
@@ -351,7 +386,7 @@ def asm(asm_content: str) -> List[str]:
             
     return machine_code
 
-def asm_to_coe(machine_codes: List[str], coe_file: str):
+def asm_to_text_coe(machine_codes: List[str], coe_file: str):
     with open(coe_file, 'w', encoding='utf-8') as fout:
         fout.write('memory_initialization_radix=16;\n')
         fout.write('memory_initialization_vector=\n')
@@ -361,14 +396,51 @@ def asm_to_coe(machine_codes: List[str], coe_file: str):
             else:
                 fout.write(f'{code},\n')
 
+def asm_to_data_coe(asm_content: str, coe_file: str):
+    '''从汇编文件中搜索.data段, 并生成数据存储器的coe文件'''
+    asm_lines = [i.strip() for i in asm_content.split('\n') if i.strip()]
+    asm_lines = [i.split('#')[0].strip() for i in asm_lines if i.split('#')[0].strip()]
+    data_sect_start = False
+    data_sect_end = False
+    defined_data_array = []
+    for line in asm_lines:
+        if data_sect_end:
+            break
+        if '.data' in line: # 数据段开始
+            data_sect_start = True
+        if '.text' in line and data_sect_start: # data段提前结束
+            data_sect_end = True
+        if is_data_define(line):
+            params = line.split(' ')
+            defined_data = params[-1][2:].zfill(8)
+            defined_data_array.append(defined_data)
+    
+    if len(defined_data_array) == 0:
+        print('WARNING: Can not find .data section, Failed to generate data_coe file')
+        return
+    
+    with open(coe_file, 'w', encoding='utf-8') as fout:
+        fout.write('memory_initialization_radix=16;\n')
+        fout.write('memory_initialization_vector=\n')
+        for i, code in enumerate(defined_data_array):
+            if i == len(defined_data_array) - 1:
+                fout.write(f'{code};\n')
+            else:
+                fout.write(f'{code},\n')
+
 if __name__ == '__main__':
     asm_file = sys.argv[1]
-    coe_file = sys.argv[2]
-    insts = ''
+    text_coe_file = sys.argv[2]
+
+    asm_content = ''
     with open(asm_file, 'r', encoding='utf-8') as fin:
-        insts = fin.read()
-    machine_codes = asm(insts)
+        asm_content = fin.read()
+    machine_codes = asm(asm_content)
     for i, inst in enumerate(machine_codes):
         print(f'{hex(i*4)}:\t{inst}')
     
-    asm_to_coe(machine_codes, coe_file)
+    asm_to_text_coe(machine_codes, text_coe_file)
+
+    if len(sys.argv) >= 4: # 需要生成data_coe文件
+        data_coe_file = sys.argv[3]
+        asm_to_data_coe(asm_content, data_coe_file)
