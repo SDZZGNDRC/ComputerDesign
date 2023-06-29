@@ -302,6 +302,8 @@ def get_ConvertFunc(inst: str) -> Callable[[str], str]:
             return convert_j
         elif 'jr' == params[0]:
             return convert_jr
+        elif 'lra' == params[0]:
+            return convert_addi
         else:
             raise Exception(f'Invalid instruction: {inst}')
 
@@ -349,6 +351,15 @@ def replace_label(inst: str, label_table: Dict[str, int], pc_next: int) -> str:
                 target_pc = bin(label_table[label])[2:].zfill(32)
                 target = target_pc[4:30]
                 new_inst = inst.replace(label, target)
+                break
+    elif inst_type == 'lra': # 伪指令: lra LABEL, 作用是将label所在的pc加载到ra, 扩展为: addi $ra, $zero, imme
+        for label in sorted(label_table.keys(), key=lambda x: len(x), reverse=True):
+            if label in inst:
+                dest_pc = bin(label_table[label])[2:].zfill(32)
+                offset_b = dest_pc[16:]
+                imme = hex(int(offset_b, 2))                
+                new_inst = f'addi $31, $0, {imme}'
+                print(f'fake_inst {inst}: {new_inst}')
                 break
     return new_inst
 

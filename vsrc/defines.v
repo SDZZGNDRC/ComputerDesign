@@ -2,7 +2,7 @@
 
 `define 	WIDTH        32 // 机器字长
 `define     ADDR_WIDTH   16 // 地址宽度
-`define     REG_WIDTH    3 // 寄存器地址宽度
+`define     REG_WIDTH    5 // 寄存器地址宽度
 `define     CU_STATE_WIDTH     4 // 控制单元状态位宽度
 
 `define     CONST_ZERO  32'd0 // 0常数

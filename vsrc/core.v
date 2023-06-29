@@ -12,7 +12,7 @@ module CORE(
     output [`WIDTH-1:0] memwdata_o
 );
     wire [`WIDTH-1:0] inst; // 指令
-    wire zero, alusrca, memtoreg, iord, pcen, bne, j, regwrite, regdst;
+    wire zero, alusrca, memtoreg, iord, pcen, bne, j, jr, regwrite, regdst;
     wire [1:0] aluop, pcsource;
     wire [2:0] alusrcb;
     wire irwrite;
@@ -34,6 +34,7 @@ module CORE(
         .pcen_o(pcen),
         .bne_o(bne),
         .j_o(j),
+        .jr_o(jr),
         .regwrite_o(regwrite),
         .regdst_o(regdst),
         .pcsource_o(pcsource),
@@ -57,6 +58,7 @@ module CORE(
         .pcen_i(pcen),
         .bne_i(bne),
         .j_i(j),
+        .jr_i(jr),
         .regwrite_i(regwrite),
         .regdst_i(regdst),
         .pcsource_i(pcsource),

@@ -17,6 +17,7 @@ module CONTROLLER(
     output     pcen_o,
     output reg bne_o,
     output reg j_o,
+    output reg jr_o,
     output reg regwrite_o,
     output reg regdst_o,
     output reg [1:0] pcsource_o,
@@ -94,6 +95,7 @@ module CONTROLLER(
         memtoreg_o <= 1'b0;
         bne_o <= 1'b0;
         j_o <= 1'b0;
+        jr_o <= 1'b0;
         case (state)
             `CU_STATE_FETCH: begin
                 memread_o <= 1'b1;
@@ -156,9 +158,9 @@ module CONTROLLER(
             `CU_STATE_JREX: begin
                 alusrca_o <= 1'b1;
                 aluop_o <= 2'b10;
-                pcsource_o <= 2'b01;
+                // pcsource_o <= 2'b00;
                 pcwrite <= 1'b1;
-                j_o <= 1'b1;
+                jr_o <= 1'b1;
             end
         endcase
     end

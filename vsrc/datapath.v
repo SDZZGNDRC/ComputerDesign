@@ -12,6 +12,7 @@ module DATAPATH(
     input pcen_i,
     input bne_i,
     input j_i,
+    input jr_i,
     input regwrite_i,
     input regdst_i,
     input [1:0] pcsource_i,
@@ -57,7 +58,7 @@ module DATAPATH(
 
     FLOPENR #(`WIDTH) pc_reg(clk, pcen_i, rst, nextpc, pc_t);
     assign beq_bne = ~((zero_o & bne_i) | (~zero_o & ~bne_i));
-    assign pc = (pcsource_i && (beq_bne | j_i)) ? nextpc : pc_t;
+    assign pc = ((pcsource_i && (beq_bne | j_i)) | jr_i) ? nextpc : pc_t;
     assign pc_j = {pc_t[`WIDTH-1:28], inst_o[25:0], 2'b00};
     // FLOP # (`WIDTH) mdr(clk, memrdata_i, md);
     FLOP # (`WIDTH) areg(clk, rd1, a);
