@@ -23,16 +23,16 @@ module MEMORY(
     always @(posedge clk) begin
         if (rst) begin
             seg7_num_r <= 16'd0;
-        end else if (memaddr_i == 32'hfffffff0 && memwrite_i) begin
-            seg7_num_r <= memrdata_o[15:0];
+        end else if (memaddr_i == 16'hfff0 && memwrite_i) begin
+            seg7_num_r <= memwdata_i[15:0];
         end
     end
 
     always @(posedge clk) begin
         if (rst) begin
             seg7_an_r <= 4'd0;
-        end else if (memaddr_i == 32'hfffffff4 && memwrite_i) begin
-            seg7_an_r <= memrdata_o[3:0];
+        end else if (memaddr_i == 32'hfff4 && memwrite_i) begin
+            seg7_an_r <= memwdata_i[3:0];
         end
     end
 
