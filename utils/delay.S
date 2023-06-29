@@ -2,6 +2,7 @@
 .set noat
 
 .text
+
 DELAY_1MS:   # 延时1毫秒 (主频100MS)
     # 初始化
     addi    $4, $0, 0x0         # 初始化计数器

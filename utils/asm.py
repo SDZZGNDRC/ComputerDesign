@@ -1,4 +1,5 @@
 from typing import Callable, List, Dict
+import sys
 
 def convert_addi(inst: str) -> str:
     # 删除#开始的注释部分
@@ -253,36 +254,43 @@ def convert_j(inst: str) -> str:
     return hex_code
 
 def get_ConvertFunc(inst: str) -> Callable[[str], str]:
-        if inst:
-            if 'addi' in inst:
-                return convert_addi
-            elif 'add' in inst:
-                return convert_add
-            elif 'sub' in inst:
-                return convert_sub
-            elif 'or' in inst:
-                return convert_or
-            elif 'and' in inst:
-                return convert_and
-            elif 'slt' in inst:
-                return convert_slt
-            elif 'beq' in inst:
-                return convert_beq
-            elif 'bne' in inst:
-                return convert_bne
-            elif 'sb' in inst:
-                return convert_sb
-            elif 'lb' in inst:
-                return convert_lb
-            elif 'j' in inst:
-                return convert_j
-            else:
-                raise Exception(f'Invalid instruction: {inst}')
+        if 'addi' in inst:
+            return convert_addi
+        elif 'add' in inst:
+            return convert_add
+        elif 'sub' in inst:
+            return convert_sub
+        elif 'or' in inst:
+            return convert_or
+        elif 'and' in inst:
+            return convert_and
+        elif 'slt' in inst:
+            return convert_slt
+        elif 'beq' in inst:
+            return convert_beq
+        elif 'bne' in inst:
+            return convert_bne
+        elif 'sb' in inst:
+            return convert_sb
+        elif 'lb' in inst:
+            return convert_lb
+        elif 'j' in inst:
+            return convert_j
+        else:
+            raise Exception(f'Invalid instruction: {inst}')
 
 def is_label(inst: str) -> bool:
     '''Check if the instruction is a label'''
     if inst.strip().endswith(':'):
         return True
+
+def is_inst(inst: str) -> bool:
+    '''Check if the instruction is a valid instruction'''
+    try:
+        get_ConvertFunc(inst)
+        return True
+    except Exception:
+        return False
 
 def int_to_hex(num: int, length: int) -> str:
     # 将整数转换为指定长度的十六进制有符号补码字符串
@@ -310,17 +318,28 @@ def replace_label(inst: str, label_table: Dict[str, int], pc_next: int) -> str:
                 break
     return new_inst
 
+def scan_table(label_inst: List[str]) -> Dict[str, int]:
+    label_table = {}
+    pc = 0
+    for line in label_inst:
+        if is_label(line):
+            label = line.split(':')[0].strip()
+            label_table[label] = pc
+        elif is_inst(line):
+            pc += 4
+    return label_table
+
 def asm(asm_content: str) -> List[str]:
+    # 删除空行和注释
     asm_inst = [i.strip() for i in asm_content.split('\n') if i.strip()]
     asm_inst = [i.split('#')[0].strip() for i in asm_inst if i.split('#')[0].strip()]
-    label_table = {}
+    asm_inst = [i for i in asm_inst if is_inst(i) or is_label(i)]
+    print(f'asm_inst={asm_inst}')
+    label_table = scan_table(asm_inst)
     machine_code = []
     pc = 0
     for code in asm_inst:
-        if is_label(code):
-            label = code.split(':')[0].strip()
-            label_table[label] = pc
-        elif code:
+        if is_inst(code):
             # 替换Label, 从长到短
             # print(f'before: {code}')
             code = replace_label(code, label_table, pc+4)
@@ -332,20 +351,24 @@ def asm(asm_content: str) -> List[str]:
             
     return machine_code
 
-if __name__ == '__main__':
-    insts = '''
-    addi    $1, $0, 0x64        # 最大循环次数
-    addi    $2, $0, 0x0         # 当前循环次数
-    addi    $3, $0, 0x1         # 初始值
-START:  # 循环开始
-    addi    $2, $2, 0x1         # 循环次数加 1
-    add     $3, $2, $3          # 累加
-    bne     $2, $1, START       # 判断是否达到最大循环次数, 否则继续累加
+def asm_to_coe(machine_codes: List[str], coe_file: str):
+    with open(coe_file, 'w', encoding='utf-8') as fout:
+        fout.write('memory_initialization_radix=16;\n')
+        fout.write('memory_initialization_vector=\n')
+        for i, code in enumerate(machine_codes):
+            if i == len(machine_codes) - 1:
+                fout.write(f'{code};\n')
+            else:
+                fout.write(f'{code},\n')
 
-    # 结束累加
-    sb      $3, 0x1000($0)      # 保存结果
-EXIT:   # 阻塞停机
-    j       EXIT'''
-    
-    for i, inst in enumerate(asm(insts)):
+if __name__ == '__main__':
+    asm_file = sys.argv[1]
+    coe_file = sys.argv[2]
+    insts = ''
+    with open(asm_file, 'r', encoding='utf-8') as fin:
+        insts = fin.read()
+    machine_codes = asm(insts)
+    for i, inst in enumerate(machine_codes):
         print(f'{hex(i*4)}:\t{inst}')
+    
+    asm_to_coe(machine_codes, coe_file)

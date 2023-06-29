@@ -7,6 +7,7 @@ module MEMORY(
     input memwrite_i,
     input [`ADDR_WIDTH-1:0] memaddr_i,
     input [`WIDTH-1:0] memwdata_i,
+    input [3:0] buttons_i,
 
     output [`WIDTH-1:0] memrdata_o,
     output [6:0] seg7_seg_o,
@@ -16,9 +17,17 @@ module MEMORY(
     wire [`WIDTH-1:0] memrdata_irom;
     wire [`WIDTH-1:0] memrdata_dram;
     wire memwrite_t;
+    wire memwrite_device_t;
 
     reg [15:0] seg7_num_r;
     reg [3:0] seg7_an_r;
+    wire [3:0] btn;
+    wire memrdevice_t;
+    reg memrdevice_t_r;
+    wire [`WIDTH-1:0] device_r_data_t;
+
+    assign device_r_data_t = {28'd0, btn};
+
 
     always @(posedge clk) begin
         if (rst) begin
@@ -26,6 +35,10 @@ module MEMORY(
         end else if (memaddr_i == 16'hfff0 && memwrite_i) begin
             seg7_num_r <= memwdata_i[15:0];
         end
+    end
+
+    always @(posedge clk) begin
+        memrdevice_t_r <= memrdevice_t;
     end
 
     always @(posedge clk) begin
@@ -38,9 +51,11 @@ module MEMORY(
 
     reg [`ADDR_WIDTH-1:0] memaddr_t;
     reg memwrite_t_r;
+    reg memwrite_device_t_r;
 
     always @(posedge clk) begin
         memwrite_t_r <= memwrite_t;
+        memwrite_device_t_r <= memwrite_device_t;
     end
 
     always @(posedge clk) begin
@@ -52,15 +67,19 @@ module MEMORY(
     end
 
     wire [`ADDR_WIDTH-1:0] iram_addr_t;
-    assign iram_addr_t = (memwrite_t) ? memaddr_t : memaddr_i;
+    assign iram_addr_t = (memwrite_t | memwrite_device_t) ? memaddr_t : memaddr_i;
 
     // 地址空间的0 ~ 4K-1用于存储指令, 4k ~ 8k-1用于存储数据
 
     // 当地址位于DRAM的地址空间时, 写请求才有效 (FIXME: 加入外设时需要修改)
     assign memwrite_t = (memaddr_i >= `ADDR_WIDTH'd4096) && (memaddr_i < `ADDR_WIDTH'd8192) ? memwrite_i : 1'b0;
 
+    // 当地址位于device的地址空间时, 写请求才有效
+    assign memwrite_device_t = (memaddr_i >= `ADDR_WIDTH'd8192) ? memwrite_i : 1'b0;
+    assign memrdevice_t = (memaddr_i >= `ADDR_WIDTH'd8192) ? memread_i : 1'b0;
+
     // 当地址位于IRAM的地址空间时, 输出IRAM的数据; 否则输出DRAM的数据 (FIXME: 加入外设时需要修改)
-    assign memrdata_o = (memaddr_t < `ADDR_WIDTH'd4096 || memwrite_t_r) ? memrdata_irom : memrdata_dram;
+    assign memrdata_o = (memaddr_t < `ADDR_WIDTH'd4096 || memwrite_t_r || memwrite_device_t_r) ? memrdata_irom : (memrdevice_t_r) ? device_r_data_t : memrdata_dram;
 
     IROM irom(
         .clk(clk),
@@ -87,5 +106,13 @@ module MEMORY(
         .sel(seg7_an_r),
         .seg(seg7_seg_o),
         .an(seg7_an_o)
+    );
+
+    Buttons buttons(
+        .clk(clk),
+        .rst(rst),
+
+        .btn_i(buttons_i),
+        .btn_o(btn)
     );
 endmodule
