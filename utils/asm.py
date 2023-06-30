@@ -2,7 +2,7 @@
 接受asm汇编源文件, 生成对应的vivado coe初始化文件
 '''
 
-from typing import Callable, List, Dict
+from typing import Callable, List, Dict, Tuple
 import sys
 
 def convert_addi(inst: str) -> str:
@@ -378,7 +378,7 @@ def scan_table(label_inst: List[str]) -> Dict[str, int]:
             pc += 4
     return label_table
 
-def asm(asm_content: str) -> List[str]:
+def asm(asm_content: str) -> Tuple[Tuple[List[str], List[str]], Dict[str, int]]:
     # 删除空行和注释
     asm_inst = [i.strip() for i in asm_content.split('\n') if i.strip()]
     asm_inst = [i.split('#')[0].strip() for i in asm_inst if i.split('#')[0].strip()]
@@ -416,8 +416,9 @@ def asm(asm_content: str) -> List[str]:
             machine_code.append(get_ConvertFunc(code)(code))
             
             pc += 4
-            
-    return machine_code
+    
+    asm_inst = [i for i in asm_inst if not is_label(i)]
+    return ((machine_code, asm_inst), label_table)
 
 def asm_to_text_coe(machine_codes: List[str], coe_file: str):
     with open(coe_file, 'w', encoding='utf-8') as fout:
@@ -468,9 +469,12 @@ if __name__ == '__main__':
     asm_content = ''
     with open(asm_file, 'r', encoding='utf-8') as fin:
         asm_content = fin.read()
-    machine_codes = asm(asm_content)
+    ((machine_codes, asm_inst), label_table) = asm(asm_content)
     for i, inst in enumerate(machine_codes):
-        print(f'{hex(i*4)}:\t{inst}')
+        if i*4 in label_table.values():
+            label = list(label_table.keys())[list(label_table.values()).index(i*4)]
+            print(f'{label}:')
+        print(f'{hex(i*4)}:\t{inst}\t\t{asm_inst[i]}')
     
     asm_to_text_coe(machine_codes, text_coe_file)
 
