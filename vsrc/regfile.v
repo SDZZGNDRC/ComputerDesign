@@ -9,10 +9,10 @@ module REGFILE # (parameter WIDTH = 32, REGBITS = 3) (
     output [WIDTH - 1 : 0] rd1_o, rd2_o
 );
     reg [WIDTH-1:0] regs [(1<<REGBITS)-1:0];
-
+    integer i;
     always @(posedge clk) begin
         if (rst) begin
-            for (integer i = 0; i < (1<<REGBITS); i = i + 1) begin
+            for (i = 0; i < (1<<REGBITS); i = i + 1) begin
                 regs[i] <= 0;
             end
         end else if (regwrite_i && wa_i) regs[wa_i] <= wd_i;

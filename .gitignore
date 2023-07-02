@@ -4,3 +4,4 @@ materials/*
 *.exe
 mips-img-elf/*
 *.zip
+*.back

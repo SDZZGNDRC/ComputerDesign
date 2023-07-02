@@ -11,7 +11,12 @@ module MEMORY(
 
     output [`WIDTH-1:0] memrdata_o,
     output [6:0] seg7_seg_o,
-    output [3:0] seg7_an_o
+    output [3:0] seg7_an_o,
+    output wire hsync_o,
+    output wire vsync_o,
+    output wire [3:0] vga_r_o,
+    output wire [3:0] vga_g_o,
+    output wire [3:0] vga_b_o
 );
 
     wire [`WIDTH-1:0] memrdata_irom;
@@ -114,5 +119,20 @@ module MEMORY(
 
         .btn_i(buttons_i),
         .btn_o(btn)
+    );
+
+    DVGA dvga(
+        .clk(clk),
+        .rst(rst),
+
+        .we_i(),
+        .addr_i(),
+        .wdata_i(),
+
+        .hsync_o(hsync_o),
+        .vsync_o(vsync_o),
+        .r_o(vga_r_o),
+        .g_o(vga_g_o),
+        .b_o(vga_b_o)
     );
 endmodule

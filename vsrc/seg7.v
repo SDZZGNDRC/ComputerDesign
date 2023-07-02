@@ -78,7 +78,7 @@ module Seg7(
                 4'h0c: conv_seg= 7'b010_0111;   //27
                 4'h0d: conv_seg= 7'b010_0001;   //21
                 4'h0e: conv_seg= 7'b000_0110;   //06
-                4'h0f: conv_seg= 7'b000_1110;   //0d
+                4'h0f: conv_seg= 7'b000_1100;   //0d !!!!change to : P
                 default: conv_seg= 7'b1111111; //ff
             endcase
 			convert = conv_seg;
