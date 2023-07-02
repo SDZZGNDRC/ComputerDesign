@@ -1,3 +1,4 @@
+`include "defines.v"
 // 内存模块, 将IRAM, DRAM以及外部设备抽象为一个内存模块
 module MEMORY(
     input clk,
@@ -5,7 +6,7 @@ module MEMORY(
 
     input memread_i,
     input memwrite_i,
-    input [`ADDR_WIDTH-1:0] memaddr_i,
+    input [`WIDTH-1:0] memaddr_i,
     input [`WIDTH-1:0] memwdata_i,
     input [3:0] buttons_i,
 
@@ -31,13 +32,23 @@ module MEMORY(
     reg memrdevice_t_r;
     wire [`WIDTH-1:0] device_r_data_t;
 
+    wire [`ADDR_WIDTH-1:0] memaddr_small;
+    assign memaddr_small = memaddr_i[`ADDR_WIDTH-1:0];
+
     assign device_r_data_t = {28'd0, btn};
 
+    wire [11:0] vga_wdata_t;
+    wire vga_wen_t;
+
+
+    assign vga_wen_t = (memaddr_i >= 32'hfff0_0000 && memaddr_i < 32'hfff4_b000) ? memwrite_i : 1'b0;
+    assign vga_wdata_t = memwdata_i[11:0];
+    
 
     always @(posedge clk) begin
         if (rst) begin
             seg7_num_r <= 16'd0;
-        end else if (memaddr_i == 16'hfff0 && memwrite_i) begin
+        end else if (memaddr_i == 32'hffff_fff0 && memwrite_i) begin
             seg7_num_r <= memwdata_i[15:0];
         end
     end
@@ -49,12 +60,13 @@ module MEMORY(
     always @(posedge clk) begin
         if (rst) begin
             seg7_an_r <= 4'd0;
-        end else if (memaddr_i == 32'hfff4 && memwrite_i) begin
+        end else if (memaddr_i == 32'hffff_fff4 && memwrite_i) begin
             seg7_an_r <= memwdata_i[3:0];
         end
     end
 
-    reg [`ADDR_WIDTH-1:0] memaddr_t;
+    reg [`WIDTH-1:0] memaddr_last;
+    reg [`ADDR_WIDTH-1:0] memaddr_small_last;
     reg memwrite_t_r;
     reg memwrite_device_t_r;
 
@@ -65,26 +77,29 @@ module MEMORY(
 
     always @(posedge clk) begin
         if (rst) begin
-            memaddr_t <= `ADDR_WIDTH'd0;
+            memaddr_last <= `WIDTH'd0;
+            memaddr_small_last <= `ADDR_WIDTH'd0;
         end else begin
-            memaddr_t <= memaddr_i;
+            memaddr_last <= memaddr_i;
+            memaddr_small_last <= memaddr_small;
         end
     end
 
     wire [`ADDR_WIDTH-1:0] iram_addr_t;
-    assign iram_addr_t = (memwrite_t | memwrite_device_t) ? memaddr_t : memaddr_i;
+    assign iram_addr_t = (memwrite_t | memwrite_device_t) ? memaddr_small_last : memaddr_small;
 
     // 地址空间的0 ~ 4K-1用于存储指令, 4k ~ 8k-1用于存储数据
 
     // 当地址位于DRAM的地址空间时, 写请求才有效 (FIXME: 加入外设时需要修改)
-    assign memwrite_t = (memaddr_i >= `ADDR_WIDTH'd4096) && (memaddr_i < `ADDR_WIDTH'd8192) ? memwrite_i : 1'b0;
+    assign memwrite_t = (memaddr_small >= `ADDR_WIDTH'd4096) && (memaddr_small < `ADDR_WIDTH'd8192) ? memwrite_i : 1'b0;
 
     // 当地址位于device的地址空间时, 写请求才有效
-    assign memwrite_device_t = (memaddr_i >= `ADDR_WIDTH'd8192) ? memwrite_i : 1'b0;
-    assign memrdevice_t = (memaddr_i >= `ADDR_WIDTH'd8192) ? memread_i : 1'b0;
+    assign memwrite_device_t = (memaddr_i >= `WIDTH'd8192) ? memwrite_i : 1'b0;
+    assign memrdevice_t = (memaddr_small >= `ADDR_WIDTH'd8192) ? memread_i : 1'b0;
 
     // 当地址位于IRAM的地址空间时, 输出IRAM的数据; 否则输出DRAM的数据 (FIXME: 加入外设时需要修改)
-    assign memrdata_o = (memaddr_t < `ADDR_WIDTH'd4096 || memwrite_t_r || memwrite_device_t_r) ? memrdata_irom : (memrdevice_t_r) ? device_r_data_t : memrdata_dram;
+    // assign memrdata_o = (memaddr_small_last < `ADDR_WIDTH'd4096 || memwrite_t_r || memwrite_device_t_r) ? memrdata_irom : (memrdevice_t_r) ? device_r_data_t : memrdata_dram;
+    assign memrdata_o = (memaddr_last < `WIDTH'd4096 || memwrite_t_r || memwrite_device_t_r || vga_wen_t) ? memrdata_irom : (memrdevice_t_r) ? device_r_data_t : memrdata_dram;
 
     IROM irom(
         .clk(clk),
@@ -98,7 +113,7 @@ module MEMORY(
         .clk(clk),
 
         .wea_i(memwrite_t),
-        .addra_i(memaddr_i),
+        .addra_i(memaddr_small),
         .dina_i(memwdata_i),
 
         .douta_o(memrdata_dram)
@@ -125,9 +140,9 @@ module MEMORY(
         .clk(clk),
         .rst(rst),
 
-        .we_i(),
-        .addr_i(),
-        .wdata_i(),
+        .we_i(vga_wen_t),
+        .addr_i(memaddr_i[18:2]),
+        .wdata_i(vga_wdata_t),
 
         .hsync_o(hsync_o),
         .vsync_o(vsync_o),

@@ -16,26 +16,37 @@ module DVGA(
     wire[9:0] next_x, next_y;
     wire[9:0] x_t, y_t;
     reg clk_div2_r;
+    reg [1:0] clk_div4_r;
     // reg [3:0] r_r, g_r, b_r;
     wire [3:0] r_t, g_t, b_t;
 
     //2 分频
     wire clk_div2;
+    //4 分频
+    wire clk_div4;
 
 
     always @(posedge clk) begin
         if (rst) begin
-            clk_div2_r     <= 'b0 ;
+            clk_div2_r     <= 1'b0 ;
+            clk_div4_r     <= 2'b0 ;
         end
         else begin
             clk_div2_r     <= ~clk_div2_r ;
+            if (clk_div4_r == 2'b11) begin
+                clk_div4_r <= 2'b0 ;
+            end else begin
+                clk_div4_r <= clk_div4_r + 1'b1 ;
+            end
         end
     end
     assign clk_div2 = clk_div2_r ;
+    assign clk_div4 = clk_div4_r[1] ^ clk_div4_r[0];
 
 
     VGA vga (
         .clk(clk_div2),
+        // .clk_25MHZ(clk_div4),
         .reset(rst),
         .hsync(hsync_o),
         .vsync(vsync_o),

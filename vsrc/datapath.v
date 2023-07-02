@@ -74,7 +74,7 @@ module DATAPATH(
         .lut({
             3'b000, memwdata_o,
             3'b001, `CONST_FOUR,
-            3'b010, inst_o[`WIDTH-1:0],
+            3'b010, signed_ext_imm,   // FIXME: Changed before: inst_o[`WIDTH-1:0]
             3'b011, signed_ext_immx4, // FIXME: Changed before: constx4
             3'b100, signed_ext_imm
         })

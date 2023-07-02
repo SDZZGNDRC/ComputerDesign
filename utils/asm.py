@@ -420,10 +420,11 @@ def asm(asm_content: str) -> Tuple[Tuple[List[str], List[str]], Dict[str, int]]:
     asm_inst = [i for i in asm_inst if not is_label(i)]
     return ((machine_code, asm_inst), label_table)
 
-def asm_to_text_coe(machine_codes: List[str], coe_file: str):
+def asm_to_text_coe(machine_codes: List[str], coe_file: str, width: int = 32):
     with open(coe_file, 'w', encoding='utf-8') as fout:
         fout.write('memory_initialization_radix=16;\n')
         fout.write('memory_initialization_vector=\n')
+        # 根据width分割
         for i, code in enumerate(machine_codes):
             if i == len(machine_codes) - 1:
                 fout.write(f'{code};\n')
@@ -465,6 +466,10 @@ def asm_to_data_coe(asm_content: str, coe_file: str):
 if __name__ == '__main__':
     asm_file = sys.argv[1]
     text_coe_file = sys.argv[2]
+    width = 32 # 默认32位
+    for i in sys.argv:
+        if '-w=' in i:
+            width = int(i.split('=')[1])
 
     asm_content = ''
     with open(asm_file, 'r', encoding='utf-8') as fin:

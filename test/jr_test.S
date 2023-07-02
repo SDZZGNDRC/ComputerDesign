@@ -19,7 +19,7 @@ FUNC1:
     addi    $8, $8, 0x1
     lra     FUNC1_INTERNAL_1
     j       FUNC2
-FUNC1_INTERNAL_1:
+FUNC1_INTERNAL_1:e
 
     # 执行结束, 恢复$ra
     lb      $31, 0x0($29)
@@ -29,4 +29,4 @@ FUNC1_INTERNAL_1:
 FUNC2:
     addi    $9, $9, 0x1
 
-    jr      $31 
+    jr      $31 # j LABEL

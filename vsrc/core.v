@@ -8,7 +8,7 @@ module CORE(
 
     output memread_o,
     output memwrite_o,
-    output [`ADDR_WIDTH-1:0] memaddr_o,
+    output [`WIDTH-1:0] memaddr_o,
     output [`WIDTH-1:0] memwdata_o
 );
     wire [`WIDTH-1:0] inst; // 指令

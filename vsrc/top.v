@@ -6,10 +6,15 @@ module top (
 
     output [3:0] led_o,
     output [6:0] seg7_seg_o,
-    output [3:0] seg7_an_o
+    output [3:0] seg7_an_o,
+    output wire hsync_o,
+    output wire vsync_o,
+    output wire [3:0] vga_r_o,
+    output wire [3:0] vga_g_o,
+    output wire [3:0] vga_b_o
 );
     wire memread, memwrite;
-    wire [`ADDR_WIDTH-1:0] memaddr;
+    wire [`WIDTH-1:0] memaddr;
     wire [`WIDTH-1:0] memwdata;
     wire [`WIDTH-1:0] memrdata;
     assign led_o = buttons_i;
@@ -37,7 +42,12 @@ module top (
         
         .memrdata_o(memrdata),
         .seg7_seg_o(seg7_seg_o),
-        .seg7_an_o(seg7_an_o)
+        .seg7_an_o(seg7_an_o),
+        .hsync_o(hsync_o),
+        .vsync_o(vsync_o),
+        .vga_r_o(vga_r_o),
+        .vga_g_o(vga_g_o),
+        .vga_b_o(vga_b_o)
     );
 
 endmodule

@@ -5,8 +5,8 @@ module VGA
     input wire reset,
     output wire hsync,
     output wire vsync,
-    output wire [WIDTH - 1:0] x_o,
-    output wire [WIDTH - 1:0] y_o,
+    output wire [`WIDTH - 1:0] x_o,
+    output wire [`WIDTH - 1:0] y_o,
     output wire video_on
 );
 	// constant declarations for VGA sync parameters
