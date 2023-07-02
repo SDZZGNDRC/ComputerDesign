@@ -9,7 +9,11 @@ reg [3:0] btn;
 assign btn_o = btn;
 
 always @(posedge clk) begin
-    btn <= btn_i;
+    if (rst) begin
+        btn <= 4'b0;
+    end else begin
+        btn <= btn_i;
+    end
 end
 
 endmodule

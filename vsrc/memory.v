@@ -8,6 +8,7 @@ module MEMORY(
     input memwrite_i,
     input [`WIDTH-1:0] memaddr_i,
     input [`WIDTH-1:0] memwdata_i,
+    input [11:0] sw_i,
     input [3:0] buttons_i,
 
     output [`WIDTH-1:0] memrdata_o,
@@ -24,10 +25,12 @@ module MEMORY(
     wire [`WIDTH-1:0] memrdata_dram;
     wire memwrite_t;
     wire memwrite_device_t;
-
+    reg [`WIDTH-1:0] memaddr_last;
+    reg [`ADDR_WIDTH-1:0] memaddr_small_last;
     reg [15:0] seg7_num_r;
     reg [3:0] seg7_an_r;
     wire [3:0] btn;
+    wire [11:0] sw;
     wire memrdevice_t;
     reg memrdevice_t_r;
     wire [`WIDTH-1:0] device_r_data_t;
@@ -35,7 +38,7 @@ module MEMORY(
     wire [`ADDR_WIDTH-1:0] memaddr_small;
     assign memaddr_small = memaddr_i[`ADDR_WIDTH-1:0];
 
-    assign device_r_data_t = {28'd0, btn};
+    assign device_r_data_t = (memaddr_last == `WIDTH'hffff_fffc) ? {20'd0, sw} : {28'd0, btn};
 
     wire [11:0] vga_wdata_t;
     wire vga_wen_t;
@@ -65,8 +68,7 @@ module MEMORY(
         end
     end
 
-    reg [`WIDTH-1:0] memaddr_last;
-    reg [`ADDR_WIDTH-1:0] memaddr_small_last;
+
     reg memwrite_t_r;
     reg memwrite_device_t_r;
 
@@ -91,7 +93,7 @@ module MEMORY(
     // 地址空间的0 ~ 4K-1用于存储指令, 4k ~ 8k-1用于存储数据
 
     // 当地址位于DRAM的地址空间时, 写请求才有效 (FIXME: 加入外设时需要修改)
-    assign memwrite_t = (memaddr_small >= `ADDR_WIDTH'd4096) && (memaddr_small < `ADDR_WIDTH'd8192) ? memwrite_i : 1'b0;
+    assign memwrite_t = (memaddr_i >= `WIDTH'd4096) && (memaddr_i < `WIDTH'd8192) ? memwrite_i : 1'b0;
 
     // 当地址位于device的地址空间时, 写请求才有效
     assign memwrite_device_t = (memaddr_i >= `WIDTH'd8192) ? memwrite_i : 1'b0;
@@ -126,6 +128,14 @@ module MEMORY(
         .sel(seg7_an_r),
         .seg(seg7_seg_o),
         .an(seg7_an_o)
+    );
+
+    Switches switches(
+        .clk(clk),
+        .rst(rst),
+
+        .sw_i(sw_i),
+        .sw_o(sw)
     );
 
     Buttons buttons(

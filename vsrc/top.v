@@ -3,6 +3,7 @@ module top (
     input wire clk,
     input wire rst,
     input wire [3:0] buttons_i,
+    input wire [11:0] sw_i,
 
     output [3:0] led_o,
     output [6:0] seg7_seg_o,
@@ -38,6 +39,7 @@ module top (
         .memwrite_i(memwrite),
         .memaddr_i(memaddr),
         .memwdata_i(memwdata),
+        .sw_i(sw_i),
         .buttons_i(buttons_i),
         
         .memrdata_o(memrdata),
