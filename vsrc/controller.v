@@ -52,6 +52,7 @@ module CONTROLLER(
                     `OP_BEQ: next_state <= `CU_STATE_BEQEX;
                     `OP_J: next_state <= `CU_STATE_JEX;
                     `OP_BNE: next_state <= `CU_STATE_BNEEX;
+                    `OP_MUL: next_state <= `CU_STATE_MULEX;
                     default: next_state <= `CU_STATE_FETCH;
                 endcase
             end
@@ -73,6 +74,8 @@ module CONTROLLER(
             `CU_STATE_ADDIWR: next_state <= `CU_STATE_FETCH;
             `CU_STATE_BNEEX: next_state <= `CU_STATE_FETCH;
             `CU_STATE_JREX: next_state <= `CU_STATE_FETCH;
+            `CU_STATE_MULEX: next_state <= `CU_STATE_MULWR;
+            `CU_STATE_MULWR: next_state <= `CU_STATE_FETCH;
             default: next_state <= `CU_STATE_FETCH;
         endcase
     end
@@ -161,6 +164,14 @@ module CONTROLLER(
                 // pcsource_o <= 2'b00;
                 pcwrite <= 1'b1;
                 jr_o <= 1'b1;
+            end
+            `CU_STATE_MULEX: begin
+                alusrca_o <= 1'b1;
+                aluop_o <= 2'b11;
+            end
+            `CU_STATE_MULWR: begin
+                regwrite_o <= 1'b1;
+                regdst_o <= 1'b1;
             end
         endcase
     end

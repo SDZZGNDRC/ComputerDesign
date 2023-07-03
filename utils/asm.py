@@ -274,6 +274,31 @@ def convert_jr(inst: str) -> str:
     
     return hex_code
 
+def convert_mul(inst: str) -> str:
+    # 删除#开始的注释部分
+    inst = inst.split('#')[0]
+    params = [i.strip(',') for i in inst.split(' ') if i.strip(',')]
+    if len(params) != 4 or params[0] != 'mul':
+        raise Exception(f'Invalid instruction: {params}')
+    rd = params[1].strip()
+    rs = params[2].strip()
+    rt = params[3].strip()
+
+    # Construct the machine code
+    opcode = '011100'  # mul instruction's opcode
+    rs_bin = '{:05b}'.format(int(rs[1:]))  # Convert rs register number to a 5-bit binary
+    rt_bin = '{:05b}'.format(int(rt[1:]))  # Convert rt register number to a 5-bit binary
+    rd_bin = '{:05b}'.format(int(rd[1:]))  # Convert rd register number to a 5-bit binary
+    shamt_bin = '00000'  # For mul instruction, shamt is always 0
+    funct = '000010'  # mul instruction's funct field
+
+    machine_code = opcode + rs_bin + rt_bin + rd_bin + shamt_bin + funct
+    # Convert to hexadecimal
+    hex_code = hex(int(machine_code, 2))[2:].zfill(8)
+
+    return hex_code
+
+
 def get_ConvertFunc(inst: str) -> Callable[[str], str]:
         params = inst.split(' ')
         params[0] = params[0].strip('\t')
@@ -304,6 +329,8 @@ def get_ConvertFunc(inst: str) -> Callable[[str], str]:
             return convert_jr
         elif 'lra' == params[0]:
             return convert_addi
+        elif 'mul' == params[0]:
+            return convert_mul
         else:
             raise Exception(f'Invalid instruction: {inst}')
 

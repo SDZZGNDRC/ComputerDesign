@@ -24,6 +24,8 @@
 `define    CU_STATE_ADDIWR       4'b1011
 `define    CU_STATE_BNEEX        4'b1100
 `define    CU_STATE_JREX         4'b1101
+`define    CU_STATE_MULEX        4'b1110
+`define    CU_STATE_MULWR        4'b1111
 
 // 指令OP字段
 `define    OP_ADDI         6'b001000
@@ -33,6 +35,8 @@
 `define    OP_BEQ          6'b000100
 `define    OP_BNE          6'b000101
 `define    OP_J            6'b000010
+`define    OP_MUL          6'b011100
 
 // 指令FUN字段
 `define    FUN_JR          6'b001000
+`define    FUN_MUL         6'b000010

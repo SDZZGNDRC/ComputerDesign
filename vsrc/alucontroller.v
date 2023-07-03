@@ -8,6 +8,7 @@ module ALUCTRL(
         case (aluop_i)
             2'b00: alucont_o <= 3'b010; // add for lb/sb/addi
             2'b01: alucont_o <= 3'b110; // sub for sub/beq
+            2'b11: alucont_o <= 3'b100; // mul
             default:
                 case (funct_i)
                     6'b100000: alucont_o <= 3'b010; // add
