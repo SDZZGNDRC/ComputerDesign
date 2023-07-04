@@ -440,7 +440,10 @@ def asm(asm_content: str) -> Tuple[Tuple[List[str], List[str]], Dict[str, int]]:
             code = replace_label(code, label_table, pc+4)
             # print(f'after: {code}')
             # 转换指令
-            machine_code.append(get_ConvertFunc(code)(code))
+            try:
+                machine_code.append(get_ConvertFunc(code)(code))
+            except ValueError:
+                raise Exception(f'Invalid instruction: {code}')
             
             pc += 4
     
