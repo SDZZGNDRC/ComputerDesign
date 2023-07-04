@@ -3,7 +3,7 @@ module top (
     input wire clk,
     input wire rst,
     input wire [3:0] buttons_i,
-    input wire [11:0] sw_i,
+    input wire [13:0] sw_i,
 
     output [3:0] led_o,
     output [6:0] seg7_seg_o,

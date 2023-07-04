@@ -62,7 +62,7 @@ module DVGA(
     // 根据next_x, next_y计算该像素在显存中的地址
     wire [16:0] addr;
     // assign addr = (next_y >>> 1) * 320 + next_x >>> 1;
-    assign addr = next_y[9:1] * 320 + next_x[9:1];
+    assign addr = {1'b0, next_y[9:1]} * 320 + {1'b0, next_x[9:1]};
 
     blk_mem_gen_2 vga_mem (
         .clka(clk),    // input wire clkb

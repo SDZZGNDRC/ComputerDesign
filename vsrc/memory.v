@@ -8,7 +8,7 @@ module MEMORY(
     input memwrite_i,
     input [`WIDTH-1:0] memaddr_i,
     input [`WIDTH-1:0] memwdata_i,
-    input [11:0] sw_i,
+    input [13:0] sw_i,
     input [3:0] buttons_i,
 
     output [`WIDTH-1:0] memrdata_o,
@@ -30,7 +30,7 @@ module MEMORY(
     reg [15:0] seg7_num_r;
     reg [3:0] seg7_an_r;
     wire [3:0] btn;
-    wire [11:0] sw;
+    wire [13:0] sw;
     wire memrdevice_t;
     reg memrdevice_t_r;
     wire [`WIDTH-1:0] device_r_data_t;
@@ -38,7 +38,7 @@ module MEMORY(
     wire [`ADDR_WIDTH-1:0] memaddr_small;
     assign memaddr_small = memaddr_i[`ADDR_WIDTH-1:0];
 
-    assign device_r_data_t = (memaddr_last == `WIDTH'hffff_fffc) ? {20'd0, sw} : {28'd0, btn};
+    assign device_r_data_t = (memaddr_last == `WIDTH'hffff_fffc) ? {18'd0, sw} : {28'd0, btn};
 
     wire [11:0] vga_wdata_t;
     wire vga_wen_t;
