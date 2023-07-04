@@ -106,6 +106,40 @@ UPDATE_COLOR_INTERNAL_3:
     addi    $9, $0, 0x2000          # mask
     and     $8, $8, $9
     beq     $8, $9, UPDATE_CENTER
+    j       UPDATE_RADIUS
+
+UPDATE_RADIUS:
+    # 更改半径
+    lb      $20, 0xfff8($0)
+    beq     $20, $0, NEXT_PIXEL
+
+    # 延时 20 毫秒
+    addi    $4, $0, 0x14
+    lra     UPDATE_RADIUS_INTERNAL_1
+    j       DELAY_N_MS
+
+UPDATE_RADIUS_INTERNAL_1:
+    # 重新读取按键值, 并判断按键是否按下
+    lb      $20, 0xfff8($0)          # 读取按键值
+    beq     $20, $0, NEXT_PIXEL
+
+    # 判断第1个按键是否按下
+    addi    $9, $0, 0x1
+    and     $10, $20, $9             # mask
+    bne     $10, $9, UPDATE_RADIUS_INTERNAL_2 # 第1个按键没有按下
+    lb      $11, 0x1010($0)         # 读取半径
+    addi    $11, $11, 0xffff        # 半径减1
+    sb      $11, 0x1010($0)
+
+UPDATE_RADIUS_INTERNAL_2:
+    # 判断第3个按键是否按下
+    addi    $9, $0, 0x4
+    and     $10, $20, $9             # mask
+    bne     $10, $9, UPDATE_RADIUS_INTERNAL_3 # 第3个按键没有按下
+    lb      $11, 0x1010($0)         # 读取半径
+    addi    $11, $11, 0x1        # 半径+1
+    sb      $11, 0x1010($0)
+UPDATE_RADIUS_INTERNAL_3:
     j       NEXT_PIXEL
 
 UPDATE_CENTER:
